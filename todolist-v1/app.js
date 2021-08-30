@@ -28,8 +28,17 @@ app.get('/', function(req,res){
 })
 
 app.post('/', function(req, res){
+
+  console.log(req.body.list);
+
+  if(req.body.list === 'Work List'){
+    workItems.push(req.body.newItem);
+    res.redirect('/work');
+  }
+  else{
   items.push(req.body.newItem);
   res.redirect('/');
+  }
 })
 
 app.get('/work', function(req, res){
