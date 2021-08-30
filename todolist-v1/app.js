@@ -8,8 +8,8 @@ app.use(express.static('public'));
 
 app.set('view engine', 'ejs');
 
-let items = [];
-let workItems = [];
+const items = [];
+const workItems = [];
 
 app.get('/', function(req,res){
   let day = date.getDate();
