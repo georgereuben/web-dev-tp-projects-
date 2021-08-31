@@ -16,19 +16,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.get('/', function(req, res){
-  res.render('home', {homeStartingPara: homeStartingContent});
+  res.render('home', {homeStartingContent});
 })
 
+app.get('/about', function(req, res){
+  res.render('about', {aboutContent});
+})
 
+app.get('/contact', function(req, res){
+  res.render('contact', {contactContent});
+})
 
-
-
-
-
-
-
-
-
+app.get('/compose', function(req, res){
+  res.render('compose')
+})
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");
