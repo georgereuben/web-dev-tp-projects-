@@ -1,7 +1,6 @@
-
 const express = require('express');
-const date = require(__dirname + '/date.js');
 const mongoose = require("mongoose");
+const _ = require("lodash");
 const app = express();
 
 app.use(express.urlencoded());
@@ -50,29 +49,19 @@ app.get('/', function(req,res){
           console.log("Default items saved!");
         }
       });
-    }
+      res.redirect("/");
+    } else {
     res.render('list', {listTitle: "Today", newListItems: foundItems});
-  })
-});
-
-app.post('/', function(req, res){
-
-  const itemName = req.body.newItem;
-  const newItem = new Item({
-    name: itemName
+    }
   });
-
-  newItem.save();
-  res.redirect('/');
 });
 
 app.get("/:customListName", function(req, res){
-  const customListName = req.params.customListName;
+  const customListName = _.capitalize(req.params.customListName);
 
   List.findOne({name: customListName}, function(err, foundList){
-    
-    if(!err){
-      if(!foundList){
+    if (!err){
+      if (!foundList){
         const list = new List({
           name: customListName,
           items: defaultItems
@@ -83,14 +72,49 @@ app.get("/:customListName", function(req, res){
         res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
       }
     } 
-  })
-})
+  });
+});
+
+app.post("/", function(req, res){
+
+  const itemName = req.body.newItem;
+  const listName = req.body.list;
+
+  const newItem = new Item({
+    name: itemName
+  });
+
+  if (listName === "Today") {
+    newItem.save();
+    res.redirect('/');
+  } else {
+    List.findOne({name: listName}, function(err, foundList){
+      foundList.items.push(newItem);
+      foundList.save();
+      res.redirect("/" + listName);
+    });
+  }
+});
 
 app.post('/delete', function(req, res){
   const checkedItemId = req.body.checkbox;
-  Item.findByIdAndRemove(checkedItemId.trim(), doc => console.log(doc));
-  res.redirect("/");
-});
+  const listName = req.body.listName;
+  
+  if (listName === "Today") {
+    Item.findByIdAndRemove(checkedItemId, function(err){
+      if (!err) {
+        console.log("Successfully deleted checked item.");
+        res.redirect("/");
+      }
+    });
+  } else {
+      List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
+        if (!err){
+          res.redirect("/" + listName);
+        }
+      });
+    }
+  });
 
 app.listen(process.env.PORT || 3000, () => {
   console.log('server is running on port 3000...');
