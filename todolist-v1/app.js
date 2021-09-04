@@ -12,10 +12,7 @@ app.set('view engine', 'ejs');
 mongoose.connect("mongodb://localhost:27017/todolistDB");
 
 const itemsSchema = {
-  name: {
-    type: String,
-    unique: true
-  }
+  name: String,
 };
 
 const Item = mongoose.model("items", itemsSchema);
@@ -34,39 +31,47 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-Item.insertMany(defaultItems, function(err){
-  if(err) {
-    console.log(err);
-  } else {
-    console.log("Default items saved!");
-  }
-});
+
 
 app.get('/', function(req,res){
-  res.render('list', {listTitle: "Today", newListItems: items});
-})
+
+  Item.find({}, function(err, foundItems){
+
+    if(foundItems.length === 0){
+      Item.insertMany(defaultItems, function(err){
+        if(err) {
+          console.log(err);
+        } else {
+          console.log("Default items saved!");
+        }
+      });
+    }
+    res.render('list', {listTitle: "Today", newListItems: foundItems});
+  })
+});
 
 app.post('/', function(req, res){
 
-  if(req.body.list === 'Work List'){
-    workItems.push(req.body.newItem);
-    res.redirect('/work');
-  }
-  else{
-  items.push(req.body.newItem);
+  const itemName = req.body.newItem;
+  const newItem = new Item({
+    name: itemName
+  });
+
+  newItem.save();
   res.redirect('/');
-  }
+});
+
+app.get("/:customListName", function(req, res){
+  const customListName = req.params.customListName;
+  
 })
 
-app.get('/work', function(req, res){
-  res.render('list', {listTitle: 'Work List', newListItems: workItems});
-})
-
-app.post('/work', function(req, res){
-  workItems.push(req.body.newItem);
-  res.redirect('/work');
-})
+app.post('/delete', function(req, res){
+  const checkedItemId = req.body.checkbox;
+  Item.findByIdAndRemove(checkedItemId.trim(), doc => console.log(doc));
+  res.redirect("/");
+});
 
 app.listen(process.env.PORT || 3000, () => {
   console.log('server is running on port 3000...');
-})
+});
