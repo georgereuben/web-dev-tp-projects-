@@ -8,7 +8,7 @@ app.use(express.static('public'));
 
 app.set('view engine', 'ejs');
 
-mongoose.connect("mongodb://localhost:27017/todolistDB");
+mongoose.connect("mongodb+srv://admin-reuben:OjxF4eJQbTMOeRbV@cluster0.vqub9.mongodb.net/todolistDB");
 
 const itemsSchema = {
   name: String,
@@ -116,6 +116,11 @@ app.post('/delete', function(req, res){
     }
   });
 
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
+}
+
 app.listen(process.env.PORT || 3000, () => {
-  console.log('server is running on port 3000...');
+  console.log('Server started successfully...');
 });
